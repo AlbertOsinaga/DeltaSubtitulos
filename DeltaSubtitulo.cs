@@ -7,63 +7,69 @@ public static class DeltaSubtitulo
 {
     #region Campos
     
-    public static bool HayError;
-    public static string MensajeError;
-    public static string PathArchivoIn;
-    public static string PathArchivoOut;
+    public static bool HayError = false;
+    public static string MensajeError = "";
+    public static string PathArchivoIn = "";
+    public static string PathArchivoOut = "";
 
     #endregion
 
     #region Metodos
+
+        public static void AplicaDelta(string[] args)
+        {
+            string archivo = args.Length > 0 ? args[0] : "";
+            string delta = args.Length > 1 ? args[1] : "";
+            DeltaSubtitulo.AplicaDelta(archivo, delta);
+        }
+
         public static void AplicaDelta(string archivo, string delta)
         {
             #region Input
-
-            string pathArchivoIn = GetPathArchivoIn(archivo);
-            if(DeltaSubtitulo.HayError)
-            {
-                WriteLine(DeltaSubtitulo.MensajeError);
-                return;
-            }
-            string deltaTiempo = GetDeltaTiempo(delta);            
-            if(DeltaSubtitulo.HayError)
-            {
-                WriteLine(DeltaSubtitulo.MensajeError);
-                return;
-            }
-
+            WriteTitle();
+            DeltaSubtitulo.PathArchivoIn = GetPathArchivoIn(archivo);
+            var deltaTiempo = GetDeltaTiempo(delta);            
             #endregion
             
             #region Process
-            string[] lineasIn = GetLineasIn(pathArchivoIn);
+            string[] lineasIn = GetLineasIn(DeltaSubtitulo.PathArchivoIn);
             string[] lineasOut = AplicaDelta(lineasIn, deltaTiempo);
             #endregion
             
             #region Output
-            string pathArchivoOut = GetPathArchivoOut(pathArchivoIn, deltaTiempo);
-            EscribeArchivoOut(pathArchivoOut, lineasOut);
-            DeltaSubtitulo.PathArchivoIn = pathArchivoIn;
-            DeltaSubtitulo.PathArchivoOut = pathArchivoOut;
+            DeltaSubtitulo.PathArchivoOut = GetPathArchivoOut(DeltaSubtitulo.PathArchivoIn, deltaTiempo);
+            EscribeArchivoOut(DeltaSubtitulo.PathArchivoOut, lineasOut);
+            WriteResult();
             #endregion
         }
 
         public static string[] AplicaDelta(string[] lineasIn, string deltaTiempo)
         {
-            TimeSpan spanDelta = CalculaSpan(deltaTiempo);
+            if(DeltaSubtitulo.HayError)
+                return new string[] {};
+            if(!HayLineas(lineasIn))    // Metodo local
+            {
+                DeltaSubtitulo.HayError = true;
+                DeltaSubtitulo.MensajeError = $"Error en {nameof(AplicaDelta)}. lineasIn no tiene lineas!";
+                return new string[] {};
+            }    
+
+            TimeSpan spanDelta = CalculaSpan(deltaTiempo);  // Metodo local
 
             var lineasOut = new string[lineasIn.Length];
             int i = 0;
             while(i < lineasIn.Length)
             {
-                lineasOut[i] = AplicaDelta(lineasIn[i], deltaTiempo);
+                lineasOut[i] = AplicaDelta(lineasIn[i]);   // Metodo local
                 i++;
             }
             return lineasOut;
 
             #region Metodos Locales
 
-            string AplicaDelta(string lineaIn, string deltaTiempo)
+            string AplicaDelta(string lineaIn)
             {
+                // spanDelta definido metodo invocador (closure)
                 var lineaOut = lineaIn;
 
                 var i = lineaOut.IndexOf("-->");
@@ -96,25 +102,34 @@ public static class DeltaSubtitulo
 
             TimeSpan CalculaSpan(string delta) => TimeSpan.Parse(delta);
 
+            bool HayLineas(string[] lineas) => lineas.Length > 0;
+
             #endregion 
         }
 
-        public static void EscribeArchivoOut(string pathArchivoOut, string[] lineasOut) => 
-                WriteAllLines(pathArchivoOut, lineasOut);
+        public static void EscribeArchivoOut(string pathArchivoOut, string[] lineasOut)
+        {
+            if(DeltaSubtitulo.HayError)
+                return;
+                
+            WriteAllLines(pathArchivoOut, lineasOut);
+        }
 
         public static string GetDeltaTiempo(string delta)
         {
+            if(DeltaSubtitulo.HayError)
+                return "";
+
             // delta tiempo
             var deltaTiempo = delta;
             if(string.IsNullOrEmpty(delta))
             {
                 // Consigue delta tiempo de la consola
-                WriteLine();
-                WriteLine("Delta de tiempo ([-]hh:mm:ss.fff): ");
+                Write("Delta de tiempo ([-]hh:mm:ss.fff): ");
                 deltaTiempo = ReadLine();
             }
 
-            if(!DeltaValido(deltaTiempo))
+            if(!DeltaValido(deltaTiempo))   // Metodo local
             {
                 DeltaSubtitulo.HayError = true;
                 DeltaSubtitulo.MensajeError = $"Error. Delta de tiempo '{deltaTiempo}' debe estar en formato: [-]hh:mm:ss.fff";
@@ -129,18 +144,19 @@ public static class DeltaSubtitulo
             #endregion
         }
 
-        public static string[] GetLineasIn(string pathArchivoIn) => ReadAllLines(pathArchivoIn);
+        public static string[] GetLineasIn(string pathArchivoIn) =>
+            !DeltaSubtitulo.HayError ? ReadAllLines(pathArchivoIn) : new string[] {}; 
 
         public static string GetPathArchivoIn(string archivo)
         {
-            DeltaSubtitulo.HayError = false;
+            if(DeltaSubtitulo.HayError)
+                return "";
 
             // nombre de archivo de entrada
             var pathArchivoIn = archivo;
             if(pathArchivoIn == "")
             {
                 // Consigue nombre de archivo de subtitulos de la consola
-                WriteLine();
                 Write("Nombre de archivo de subtítulos: ");
                 pathArchivoIn = ReadLine();
             }
@@ -157,6 +173,9 @@ public static class DeltaSubtitulo
   
         public static string GetPathArchivoOut(string pathArchivoIn, string deltaTiempo) //=>
         {
+            if(DeltaSubtitulo.HayError)
+                return "";
+            
             var strDelta = deltaTiempo.Replace(":", "_");
             var directoryName = GetDirectoryName(pathArchivoIn);
             var pathArchivoOut =   directoryName + (directoryName != "" ? 
@@ -165,9 +184,28 @@ public static class DeltaSubtitulo
                                     GetExtension(pathArchivoIn);
             return pathArchivoOut;                                            
         }
-        
-    #endregion
-}
+
+        public static void WriteResult()
+        {
+            if(!DeltaSubtitulo.HayError)
+            {
+                WriteLine($"Archivo '{DeltaSubtitulo.PathArchivoIn}' " + 
+                            $"ajustado en {DeltaSubtitulo.PathArchivoOut}!!!!");
+            }
+            else
+            {
+                WriteLine(DeltaSubtitulo.MensajeError);
+            }
+        }
+        public static void WriteTitle()
+        {
+            WriteLine();
+            WriteLine("DeltaSubtitulos (dotnet run -- [archivoIn.srt] [hh:mm:ss.fff]");
+            WriteLine("-------------------------------------------------------------");
+        }
+
+        #endregion
+    }
 
 #region Footer
 }

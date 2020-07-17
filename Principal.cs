@@ -5,16 +5,10 @@ namespace CursoCSharp  {
 
 public static class Principal 
 {
-    static void Main(string[] args)
-    {
-        string archivo = args.Length > 0 ? args[0] : "";
-        string delta = args.Length > 1 ? args[1] : "";
-        DeltaSubtitulo.AplicaDelta(archivo, delta);
+    public static void Main(string[] args) => DeltaSubtitulo.AplicaDelta(args);
+    // {
         
-        WriteLine();
-        if(!DeltaSubtitulo.HayError)
-            WriteLine($"Archivo '{DeltaSubtitulo.PathArchivoIn}' ajustado en {DeltaSubtitulo.PathArchivoOut}!!!!");
-    }
+    // }
 }
 
 #region Footer
