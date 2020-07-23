@@ -19,7 +19,7 @@ public static class DeltaSubtitulo
         public static void AplicaDelta(string[] args)
         {
             string archivo = args.Length > 0 ? args[0] : "";
-            string delta = args.Length > 1 ? args[1] : "";
+            string delta = args.Length > 1 ? args[1] : ""; 
             DeltaSubtitulo.AplicaDelta(archivo, delta);
         }
 
@@ -47,29 +47,29 @@ public static class DeltaSubtitulo
         {
             if(DeltaSubtitulo.HayError)
                 return new string[] {};
-            if(!HayLineas(lineasIn))    // Metodo local
+            if(!HayLineas(lineasIn))    // funcion local
             {
                 DeltaSubtitulo.HayError = true;
                 DeltaSubtitulo.MensajeError = $"Error en {nameof(AplicaDelta)}. lineasIn no tiene lineas!";
                 return new string[] {};
             }    
 
-            TimeSpan spanDelta = CalculaSpan(deltaTiempo);  // Metodo local
+            TimeSpan spanDelta = CalculaSpan(deltaTiempo);  // funcion local
 
             var lineasOut = new string[lineasIn.Length];
             int i = 0;
             while(i < lineasIn.Length)
             {
-                lineasOut[i] = AplicaDelta(lineasIn[i]);   // Metodo local
+                lineasOut[i] = AplicaDelta(lineasIn[i]);   // funcion local
                 i++;
             }
             return lineasOut;
 
-            #region Metodos Locales
+            #region Funciones Locales
 
             string AplicaDelta(string lineaIn)
             {
-                // spanDelta definido metodo invocador (closure)
+                // spanDelta definido metodo contenedor (closure)
                 var lineaOut = lineaIn;
 
                 var i = lineaOut.IndexOf("-->");
@@ -129,7 +129,7 @@ public static class DeltaSubtitulo
                 deltaTiempo = ReadLine();
             }
 
-            if(!DeltaValido(deltaTiempo))   // Metodo local
+            if(!DeltaValido(deltaTiempo))   // Funcion local
             {
                 DeltaSubtitulo.HayError = true;
                 DeltaSubtitulo.MensajeError = $"Error. Delta de tiempo '{deltaTiempo}' debe estar en formato: [-]hh:mm:ss.fff";
@@ -137,7 +137,7 @@ public static class DeltaSubtitulo
 
             return deltaTiempo;
 
-            #region Metodos Locales
+            #region Funciones Locales
 
             bool DeltaValido(string deltaTiempo) => TimeSpan.TryParse(deltaTiempo, out TimeSpan tsDeltaTiempo);
 
@@ -171,7 +171,7 @@ public static class DeltaSubtitulo
             return pathArchivoIn;
         }
   
-        public static string GetPathArchivoOut(string pathArchivoIn, string deltaTiempo) //=>
+        public static string GetPathArchivoOut(string pathArchivoIn, string deltaTiempo)
         {
             if(DeltaSubtitulo.HayError)
                 return "";
@@ -205,7 +205,7 @@ public static class DeltaSubtitulo
         }
 
         #endregion
-    }
+}
 
 #region Footer
 }
